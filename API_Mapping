@@ -1,0 +1,106 @@
+### Jiaxin Ge
+### 58153795
+### API_interaction
+
+#  Consumer Key: 5cKi0FeURmppNIoUaQ05hVmqz133zWXx
+
+BASE_MAPQUEST_API = "http://open.mapquestapi.com/directions/v2/route?"
+
+MAPQUEST_EVELATION_API = "http://open.mapquestapi.com/elevation/v1/profile?"
+
+MAPQUEST_KEY = "5cKi0FeURmppNIoUaQ05hVmqz133zWXx"
+
+
+import json
+import urllib.request
+import urllib.parse
+from output_implement import latlongs
+
+
+
+def build_search_url(location_list: list) -> str:
+    '''
+    This function takes a location list and builds and returns a URL that can be used to ask the
+    MAPQUEST API for information about route request.
+    '''
+    
+    key_parameter = [ ('key', MAPQUEST_KEY)]
+
+    return BASE_MAPQUEST_API + urllib.parse.urlencode(key_parameter +_from_to_parameters(location_list))
+
+
+
+def build_elevation_url(location_list: list) -> list:
+    '''
+    This function takes a location list and builds and returns a list of URL that can be used to ask the
+    MAPQUEST API for information about elevation request.
+    '''
+
+    key_parameter = [ ('key', MAPQUEST_KEY), ("unit","f")]
+    
+    latlngcollection_list = latlngcollection_parameter(location_list)
+
+    new_list = []
+
+    for latlngcollection in latlngcollection_list:
+
+        new_list.append (MAPQUEST_EVELATION_API + urllib.parse.urlencode(key_parameter) + latlngcollection)
+
+    return new_list
+    
+
+def latlngcollection_parameter (location_list: list) -> list:
+    '''
+    This function takes a location list and return the latlngColltection parameter in elevation url
+    '''
+
+    item = latlongs()
+    new_str = ""
+    url_list = []
+    
+    latlnglist = item.return_latlongs(get_dictionary(build_search_url(location_list)))
+
+
+    for a in range(int (len(latlnglist)/2)):
+        
+        url_list.append ("&latLngCollection=" + str(latlnglist[2*a]) + "," + str(latlnglist[2*a+1]))
+    
+    return url_list
+
+
+def _from_to_parameters (location_list: list) -> list:
+    '''
+    This function takes a location list and return the from-to parameters in basic url
+    '''
+    parameters = []
+
+    for number in range(len(location_list)):
+
+        if number == 0:
+            parameters.append (("from", location_list[number]))
+
+        else:
+            parameters.append (("to", location_list[number]))
+            
+    return parameters
+
+
+
+def get_dictionary(url: str) -> dict:
+    '''
+    This function takes a URL and returns a Python dictionary representing the
+    parsed JSON response.
+    '''
+    response = None
+
+    try:
+        response = urllib.request.urlopen(url)
+        text = response.read()
+        json_text = text.decode(encoding = 'utf-8')
+        return json.loads(json_text)
+
+    finally:
+        if response != None:
+            response.close()
+
+
