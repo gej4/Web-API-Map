@@ -1,0 +1,176 @@
+### Jiaxin Ge
+### 58153795
+### API input reader
+
+from output_implement import steps
+from output_implement import total_distance
+from output_implement import total_time
+from output_implement import latlongs
+from output_implement import elevation
+import API_interaction
+
+class location():
+    def __init__(self):
+        self._address = ""
+
+    def address(self, string):
+        self._address = string
+
+def main_function() -> None:
+    '''The main function of the program
+    '''
+    number_of_location = _read_numbers_of_location()
+    location_list = _read_location(number_of_location)
+    number_of_output = _read_numbers_of_output()
+    output_list = _read_type_of_output(number_of_output)
+
+    try:
+        if not _evaluate_valid (location_list):
+            _print_no_route_message()
+            
+        else:
+            _get_output ((output_list, location_list))
+            print_ending_banner()
+
+    except:
+        _print_error_message()
+           
+        
+def _get_output(list_tuple: tuple) -> None:
+    '''get the output from url request
+    '''
+    output_list = list_tuple[0]
+    location_list = list_tuple[1]
+    for item in output_list:
+
+        item = _evaluate_output(item)
+        
+        if type(item) == elevation:
+            item.print_name()
+            url_list = API_interaction.build_elevation_url(location_list)
+            for url in url_list:
+                item.get_result(API_interaction.get_dictionary(url))
+
+        else:
+            item.get_result(API_interaction.get_dictionary(API_interaction.build_search_url(location_list)))
+     
+
+def _evaluate_valid(location_list: list) -> bool:
+    '''Find out if the location has route
+    '''
+    search_result = API_interaction.get_dictionary(API_interaction.build_search_url(location_list))
+    
+    if search_result["route"]["routeError"]["errorCode"] == 2:
+        return False
+    else:
+        return True
+
+    
+def _print_no_route_message() -> None:
+    '''print the message of no route
+    '''
+    print ()
+    print ("NO ROUTE FOUND")
+
+
+def _print_error_message() -> None:
+    '''print the message of MAPQUEST ERROR
+    '''
+    print ()
+    print ("MAPQUEST ERROR")
+
+
+def _read_numbers_of_location():
+    '''read the amount of locations and find if they're valid
+    '''
+    while True:
+        try:
+            number_of_location = int (input())
+
+            if number_of_location < 2:
+                print ("The number is less than 2. Please try it again.")
+                continue
+
+        except TypeError:
+            print ("The number is not an integer.")
+            
+        
+        return number_of_location
+
+
+def _read_location(number_of_location: int) -> list:
+    '''read the address of the location and return as a list
+    '''
+    location_list = []
+
+    for number in range(number_of_location):
+
+        address = input()
+        location_list.append(address)
+
+    return location_list
+
+
+def _read_numbers_of_output():
+    '''read the amount of output and find if they're valid
+    '''
+    while True:
+        try:
+            numbers_of_output = int (input())
+
+            if numbers_of_output < 1:
+                print ("The number is less than 1. Please try it again.")
+                continue
+
+        except TypeError:
+            print ("The number is not an integer.")
+            
+        return numbers_of_output
+            
+
+def _read_type_of_output(numbers_of_output: int):
+    '''read the type of output and return as a list
+    '''
+    output_list = []
+
+    for number in range(numbers_of_output):
+
+        output = input()
+        new_output = _evaluate_output(output)
+        output_list.append(output)
+
+    return output_list
+        
+
+
+def _evaluate_output (output: str):
+    '''give each output a specific class
+    '''
+    if output == "STEPS":
+        output = steps()
+        
+    elif output == "TOTALDISTANCE":
+        output = total_distance()
+        
+    elif output == "TOTALTIME":
+        output = total_time()
+        
+    elif output == "LATLONG":
+        output = latlongs()
+        
+    elif output == "ELEVATION":
+         output = elevation()
+
+    return output
+
+
+def print_ending_banner() -> None:
+    '''print the ending banner of the program
+    '''
+    print ("Directions Courtesy of MapQuest; Map Data Copyright OpenStreetMap Contributors")
+
+
+if __name__ == "__main__":
+
+    main_function()
+
