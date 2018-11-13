@@ -1,0 +1,156 @@
+### Jiaxin Ge
+### 58153795
+### API Output implement
+
+
+import time
+
+
+class steps:
+    
+    def get_result(self, search_result: dict) -> None:
+        '''get the result of the instruction STEPS
+        '''  
+        print ("DIRECTIONS")
+        for item in search_result["route"]["legs"]:
+            self._print_direction(item)
+        print ()
+
+    def _print_direction(self, subdictionary: dict) -> None:
+        '''print the result of the instruction STEPS
+        '''
+        
+        for item in subdictionary['maneuvers']:
+            print (item["narrative"])
+        
+
+
+
+class total_distance:
+    
+    def get_result(self, search_result: dict) -> None:
+        '''get the result of the instruction TOTALDISTANCE
+        '''
+        self._print_total_distance (int (round(search_result["route"]["distance"])))
+
+    def _print_total_distance(self, total_distance: int) -> None:
+        '''print the result of the instruction TOTALDISTANCE
+        '''
+        print ("TOTAL DISTANCE: " + str (total_distance) + " miles")
+        print ()
+
+
+
+class total_time :
+    
+    def get_result(self, search_result: dict) -> None:
+        '''get the result of the instruction TOTALTIME
+        '''
+        total_time = search_result["route"]['formattedTime']
+        timetuple = time.strptime(total_time,'%X')
+    
+        minutes = timetuple.tm_hour* 60 + timetuple.tm_min
+        if timetuple.tm_sec >= 30:
+            minutes += 1
+        
+        self._print_total_time(minutes)
+        
+        
+      
+    def _print_total_time(self, total_minutes: int) -> None:
+        '''print the result of the instruction TOTALTIME
+        '''
+        print ("TOTAL TIME: "+  str(total_minutes) + " minutes")
+        print ()
+
+
+
+class latlongs:
+
+    def get_result(self, search_result: dict) -> None:
+        '''get the result of the instruction LATLONG
+        '''
+        print ("LATLONGS")
+        latlong_list = []
+        for item in search_result["route"]["legs"]:
+            self._get_latlongs_list(item, latlong_list)
+        latlong_list = self._delete_repeat_item(latlong_list)
+        self._print_latlongs (latlong_list)
+        print ()
+
+    def _get_latlongs_list(self, subdictionary: dict, latlong_list: list) -> None:
+        '''get the lat and lng and add in the list
+        '''
+        
+        latlong_list.append (self._get_formal_latlongs(subdictionary["maneuvers"][0]['startPoint']))
+        latlong_list.append (self._get_formal_latlongs(subdictionary["maneuvers"][-1]['startPoint']))
+
+
+    
+    def _get_formal_latlongs(self, subdictionary: dict) -> tuple:
+        '''get the result of the instruction LATLONG 
+        '''
+
+        latitude = abs (round (subdictionary["lat"], 2))
+        if latitude == round (subdictionary["lat"], 2):
+            new_latitude = str (latitude)+ "N"
+        else:
+            new_latitude = str (latitude)+ "S"
+         
+        longitude = abs (round (subdictionary["lng"], 2))
+        if longitude == round (subdictionary["lng"], 2):
+            new_longitude = str (longitude)+ "E"
+        else:
+            new_longitude = str (longitude)+ "W"
+
+        return (new_latitude, new_longitude)
+
+
+    def _delete_repeat_item (self, latlong_list: list) -> list:
+        '''delete repeat item in latlong list
+        '''
+
+        new_list = []
+        for item in latlong_list:
+            if item not in new_list:
+                new_list.append (item)
+        return new_list
+
+
+    def _print_latlongs (self, latlong_list: list) -> None:
+        '''print the result of the instruction LATLONG
+        '''
+        for latlong in latlong_list:
+            print (latlong[0] + " " + latlong[1])
+
+
+    def return_latlongs (self, search_result: dict) -> list:
+        '''return the latlongs as a list
+        '''
+        latlong_list = []
+        for item in search_result["route"]["legs"]:
+            self._get_normal_latlongs(item, latlong_list)
+        new_list = self._delete_repeat_item(latlong_list)
+        return new_list
+
+    def _get_normal_latlongs(self, subdictionary: dict, latlong_list: list) -> None:
+        '''get normal format of latlongs
+        '''
+        latlong_list.append (subdictionary["maneuvers"][0]['startPoint']["lat"])
+        latlong_list.append (subdictionary["maneuvers"][0]['startPoint']["lng"])
+        latlong_list.append (subdictionary["maneuvers"][-1]['startPoint']["lat"])
+        latlong_list.append (subdictionary["maneuvers"][-1]['startPoint']["lng"])
+    
+class elevation:
+
+    def get_result(self, search_result: dict) -> None:
+        '''get the result of the instruction ELEVATION
+        '''
+        print (round (search_result["elevationProfile"][0]["height"]))
+        print ()
+
+    def print_name(self) -> None:
+        '''print the result of the instruction ELEVATION
+        '''
+        print ("ELEVATIONS")
+
